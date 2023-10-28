@@ -1,52 +1,164 @@
-# theta-solo-staking
-Docker images for theta solo staking
+# Steps to run Mainnet via Docker
 
-# Solo Staking
+## Prerequisites
+- [Docker](https://docs.docker.com/engine/install/)
+- [Admin Wallet Creation](https://github.com/imaginereplay/replay/blob/main/docs/SoloStaking.md#admin-wallet-creation)
+- Open Ports
+Subchain Node - Open Port: 12100
+Sub chain ETH RPC adapter - Open Port: 16900
+***
+## Step - 1
+This should be run only once for initial setup. The below command will install required binaries, create docker volume and download latest snapshot of Mainnet chain. It's best to isolate the docker containers in separate network for better security and interoperability.
 
-# Setup for the Mainnet Environment
+Creating the docker network for all containers that will be deployed for Mainnet.
+```
+docker network create -d bridge mainnet
+```
 
-**IMPORTANT**: The following instructions are currently being revised and are a WORK IN PROGRESS. Please proceed with caution and be aware that changes may be ongoing.
-If any questions arise during the setup process please email [support@imaginereplay.org](mailto:support@imaginereplay.org) or contact us on #validator-support channel on discord.
+Create directory to store the keystore file
 
-**Reward mechanism**:
-To incentivize all validators in the operation of the subchain, we have set the Staker reward of 10 RPLAY tokens per block. These blocks are generated every 7 seconds, and the Theta protocol calculates rewards for each staker or validator based on their staked RPLAY tokens. The more tokens staked, the higher the rewards for the staker.
+```
+mkdir ~/mainnet-docker
+```
 
+Copy the wallet keystore file within the folder created above ```~/mainnet-docker/```
 
-### Before you Proceed:
-We highly encourage going through following documentation before you proceed with main net setup:
-- [Replay Whitepaper](https://assets-cdn.imaginereplay.com/docs/Imagine-Replay-Whitepaper-latest.pdf)
-- [Theta Metachain Whitepaper](https://assets.thetatoken.org/theta-mainnet-4-whitepaper.pdf)
-- [Theta Subchain Testnet Setup](https://github.com/thetatoken/theta-metachain-guide/blob/master/docs/2-testnet/manual-flow/1-setup.md)
+Run the initial setup
+```
+cd ~/mainnet-docker && \
+docker run \
+-v meta_volume:/root/metachain_playground \
+-v ./<WalletAddress.keystore>:/root/.thetacli/keys/encrypted/<WalletAddress.keystore> \
+bloodyburger/replay-setup
+```
 
-### Overview of Setting up Replay validator:
-This document offers an overview of launching a validator to be part of Replay subchain. At a high level, the process involves the following steps:
-- **Requirements**: All the hardware requirements and tokens needed to start and stake into a validator.
-- **Set up**: This involves setting up all the binaries that are needed to run main chain node and sub chain node. You run this only once. You will set up main chain node, main chain eth rpc and sub chain binaries. You will also set up a workspace folder with theta metachain guide which runs the scripts from here - [Theta Metachain Guide](https://github.com/thetatoken/theta-metachain-guide)
-- **Run the node in read only mode**: This phase precedes staking. Once this setup is complete, your node is operational, connecting to peers to confirm block finalization. Staking rewards won't be visible at this stage, as no RPLAY tokens have been staked yet. Ensure all four processes are functioning without issues and that you observe the expected output before moving forward.  
-- **Staking to Validator**: In this phase, RPLAY tokens are staked within the validator, enabling the staker to start accumulating rewards. When completed, your validator should be visible in the list of nodes on the subchain explorer. This signals that other stakers can commence depositing their stakes into your validator.
+Replace <WalletAddress.keystore> with keystore file that was downloaded and copied above. Wait until the setup is complete and the snapshot download is complete. You may then kill the container by using ```CTRL+Z``` or ```CTRL+X```
 
-## Requirements
-You need to have a machine with following requirements and periodically monitor if all the processes are running as expected. These are recommended by Theta team to run a validator as part of Replay sub chain:
+***
+## Step - 2
+Run the Mainchain node
 
-### Hardware Minimum Requirements:
+```
+docker run -d \
+-e MAIN_CHAIN_NODE_PASSWORD=<YOUR_MAIN_CHAIN_NODE_PASSWORD> \
+--hostname mainchain_node \
+--network mainnet \
+--name mainchain_node \
+-v meta_volume:/root/metachain_playground \
+-v ./<WalletAddress.keystore>:/root/.thetacli/keys/encrypted/<WalletAddress.keystore> \
+bloodyburger/replay-mainchain-node
+```
+Replace <WalletAddress.keystore> with keystore file that was downloaded and copied above.
+Wait until the Main Chain walletnode gets insync with the network. This may take some time (e.g. 1-2 hours). You can run the following command to check its synchronization status. If in the output says "syncing": false it means the node is synced to the latest block.
 
-Please ensure that you utilize a dedicated machine solely for running your validator. Running other software on the same machine is discouraged, as these processes demand a significant amount of processing power and bandwidth.
+``` 
+docker logs mainchain_node 
+docker exec -it mainchain_node bash
+thetacli query status 
+```
+***
+## Step - 3
+After the Main Chain walletnode is in-sync with the network, run the following command to start the Mainchain ETHRPC
+```
+docker run -d \
+--hostname mainchain_ethrpc \
+--network mainnet \
+--name mainchain_ethrpc \
+-v meta_volume:/root/metachain_playground \
+-v ./<WalletAddress.keystore>:/root/.thetacli/keys/encrypted/<WalletAddress.keystore> \
+bloodyburger/replay-mainchain-ethrpc
+```
+Replace <WalletAddress.keystore> with keystore file that was downloaded and copied above. To check the conatiner logs, use the command below
 
-- Memory: 16 GB RAM
-- CPU: 8 cores
-- Storage Disk: 1 TB SSD
-- Network Bandwidth: 200Mbps symmetrical commercial network
-- Operating System: Ubuntu
+``` 
+docker logs mainchain_ethrpc 
+```
+***
+## Step - 4
+Run the Sub Chain ETH RPC
+```
+docker run -d \
+--hostname subchain_ethrpc \
+--network mainnet \
+--name subchain_ethrpc \
+-p 16900:16900 \
+-v meta_volume:/root/metachain_playground \
+-v ./<WalletAddress.keystore>:/root/.thetacli/keys/encrypted/<WalletAddress.keystore> \
+bloodyburger/replay-subchain-ethrpc
+```
+ To check the conatiner logs, use the command below
 
-You may use AWS, Google or any other cloud hosting services that can satisfy above requirements. For example - m6a.2xlarge on AWS with added 1 TB SSD storage will give you the right instance.
+``` 
+docker logs subchain_ethrpc 
+```
+***
+## Step - 5
+Run the Sub Chain Validator
+```
+docker run -d \
+-e MAIN_CHAIN_NODE_PASSWORD=<YOUR_MAIN_CHAIN_NODE_PASSWORD> \
+--hostname subchain_node \
+--network mainnet \
+--name subchain_node \
+-p 12100:12100 \
+-v meta_volume:/root/metachain_playground \
+bloodyburger/replay-subchain-node
+```
+ To check the conatiner logs, use the command below
 
-### Admin wallet creation:
+``` 
+docker logs subchain_node 
+```
+***
+## Validation
+### 1. Test Main Chain Node
+``` 
+docker logs mainchain_node 
+docker exec -it mainchain_node bash
+thetacli query status 
+```
 
-First, please set up an admin wallet. You can generate it using the `thetacli key new` command or through the [Theta Web Wallet](https://wallet.thetatoken.org/unlock/keystore-file). If you generate the wallet using `thetacli key new`, it will automatically place the keystore file under `~/.thetacli/keys/encrypted/`. If you generate the key using the Theta Web Wallet, please copy the keystore file to the same folder.
-
-### Admin requirements:
-
-In addition to the hardware requirements, you will need the following tokens:
-- 1000 wTheta: If you have THETA tokens, they can be wrapped on the Theta Wallet.
-- 20,000 TFUEL + additional to cover gas fees : This amount is required to cover cross-chain transfers that require TFUEL. Additional gas fees is to perform deposit stake transaction. 
-- At least 1 RPLAY token :)
+### 2. Test Main Chain ETHRPC
+``` 
+docker logs mainchain_ethrpc 
+docker exec -it mainchain_ethrpc bash
+curl --location --request POST 'http://mainchain_node:18888/rpc' \
+--header 'Content-Type: application/json' \
+--data-raw '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":67}'
+```
+The response should look like this:
+```
+{
+  "jsonrpc": "2.0",
+  "id": 67,
+  "result": "0x16d"
+}
+```
+### 3. Test Sub Chain ETH RPC
+``` 
+docker logs subchain_ethrpc 
+docker exec -it subchain_ethrpc bash
+curl --location --request POST 'http://subchain_ethrpc:19888/rpc' --header 'Content-Type: application/json' --data-raw '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":67}'
+```
+Response should be:
+```
+{
+  "jsonrpc":"2.0",
+  "id":67,
+  "result":"0x30e375aadebd7205"
+}
+```
+### 4. Test Sub Chain Validator
+``` 
+docker logs subchain_node 
+docker exec -it subchain_node bash
+curl --location --request POST 'http://subchain_ethrpc:16900/rpc' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "method": "theta.GetStatus",
+  "params": [
+  ]
+}'
+```
