@@ -29,7 +29,7 @@ cd ~/mainnet-docker && \
 docker run \
 -v meta_volume:/root/metachain_playground \
 -v ./<WalletAddress.keystore>:/root/.thetacli/keys/encrypted/<WalletAddress.keystore> \
-bloodyburger/replay-setup
+imaginereplayorg/replay-setup
 ```
 
 Replace <WalletAddress.keystore> with keystore file that was downloaded and copied above. Wait until the setup is complete and the snapshot download is complete. You may then kill the container by using ```CTRL+Z``` or ```CTRL+X```
@@ -46,7 +46,7 @@ docker run -d \
 --name mainchain_node \
 -v meta_volume:/root/metachain_playground \
 -v ./<WalletAddress.keystore>:/root/.thetacli/keys/encrypted/<WalletAddress.keystore> \
-bloodyburger/theta-mainchain
+imaginereplayorg/theta-mainchain
 ```
 Replace <WalletAddress.keystore> with keystore file that was downloaded and copied above.
 Wait until the Main Chain walletnode gets insync with the network. This may take some time (e.g. 1-2 hours). You can run the following command to check its synchronization status. If in the output says "syncing": false it means the node is synced to the latest block.
@@ -66,7 +66,7 @@ docker run -d \
 --name mainchain_ethrpc \
 -v meta_volume:/root/metachain_playground \
 -v ./<WalletAddress.keystore>:/root/.thetacli/keys/encrypted/<WalletAddress.keystore> \
-bloodyburger/theta-mainchain-ethrpc
+imaginereplayorg/theta-mainchain-ethrpc
 ```
 Replace <WalletAddress.keystore> with keystore file that was downloaded and copied above. To check the conatiner logs, use the command below
 
@@ -84,7 +84,7 @@ docker run -d \
 -p 16900:16900 \
 -v meta_volume:/root/metachain_playground \
 -v ./<WalletAddress.keystore>:/root/.thetacli/keys/encrypted/<WalletAddress.keystore> \
-bloodyburger/replay-subchain-ethrpc
+imaginereplayorg/replay-subchain-ethrpc
 ```
  To check the conatiner logs, use the command below
 
@@ -102,7 +102,7 @@ docker run -d \
 --name subchain_node \
 -p 12100:12100 \
 -v meta_volume:/root/metachain_playground \
-bloodyburger/replay-subchain
+imaginereplayorg/replay-subchain
 ```
  To check the conatiner logs, use the command below
 
