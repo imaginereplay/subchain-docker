@@ -1,4 +1,4 @@
-# Steps to run Mainnet and Subchain via Docker
+# Steps to run Mainnet via Docker
 
 ## Prerequisites
 - [Docker](https://docs.docker.com/engine/install/)
@@ -29,7 +29,7 @@ cd ~/mainnet-docker && \
 docker run \
 -v meta_volume:/root/metachain_playground \
 -v ./<WalletAddress.keystore>:/root/.thetacli/keys/encrypted/<WalletAddress.keystore> \
-imaginereplayorg/replay-setup
+bloodyburger/replay-setup
 ```
 
 Replace <WalletAddress.keystore> with keystore file that was downloaded and copied above. Wait until the setup is complete and the snapshot download is complete. You may then kill the container by using ```CTRL+Z``` or ```CTRL+X```
@@ -46,7 +46,7 @@ docker run -d \
 --name mainchain_node \
 -v meta_volume:/root/metachain_playground \
 -v ./<WalletAddress.keystore>:/root/.thetacli/keys/encrypted/<WalletAddress.keystore> \
-imaginereplayorg/theta-mainchain
+bloodyburger/theta-mainchain
 ```
 Replace <WalletAddress.keystore> with keystore file that was downloaded and copied above.
 Wait until the Main Chain walletnode gets insync with the network. This may take some time (e.g. 1-2 hours). You can run the following command to check its synchronization status. If in the output says "syncing": false it means the node is synced to the latest block.
@@ -66,7 +66,7 @@ docker run -d \
 --name mainchain_ethrpc \
 -v meta_volume:/root/metachain_playground \
 -v ./<WalletAddress.keystore>:/root/.thetacli/keys/encrypted/<WalletAddress.keystore> \
-imaginereplayorg/theta-mainchain-ethrpc
+bloodyburger/theta-mainchain-ethrpc
 ```
 Replace <WalletAddress.keystore> with keystore file that was downloaded and copied above. To check the conatiner logs, use the command below
 
@@ -81,10 +81,10 @@ docker run -d \
 --hostname subchain_ethrpc \
 --network mainnet \
 --name subchain_ethrpc \
--p 16900:16900 \
+-p 12100:12100 \
 -v meta_volume:/root/metachain_playground \
 -v ./<WalletAddress.keystore>:/root/.thetacli/keys/encrypted/<WalletAddress.keystore> \
-imaginereplayorg/replay-subchain-ethrpc
+bloodyburger/replay-subchain-ethrpc
 ```
  To check the conatiner logs, use the command below
 
@@ -100,9 +100,9 @@ docker run -d \
 --hostname subchain_node \
 --network mainnet \
 --name subchain_node \
--p 12100:12100 \
+-p 16900:16900 \
 -v meta_volume:/root/metachain_playground \
-imaginereplayorg/replay-subchain
+bloodyburger/replay-subchain
 ```
  To check the conatiner logs, use the command below
 
