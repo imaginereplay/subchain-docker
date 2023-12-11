@@ -1,4 +1,4 @@
-# Steps to run Mainnet and Subchain via Docker
+# Steps to run Mainchain and Subchain via Docker
 
 ## Prerequisites
 - [Docker](https://docs.docker.com/engine/install/)
