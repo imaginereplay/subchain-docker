@@ -1,4 +1,4 @@
-# Steps to run Mainnet via Docker
+# Steps to run Mainnet and Subchain via Docker
 
 ## Prerequisites
 - [Docker](https://docs.docker.com/engine/install/)
@@ -7,6 +7,10 @@
 Subchain Node - Open Port: 12100
 Sub chain ETH RPC adapter - Open Port: 16900
 ***
+## Help
+Please reach out on [Discord](https://discord.gg/QH4X6ZnA) for any assistance on docker setup.
+***
+# Docker installation
 ## Step - 1
 This should be run only once for initial setup. The below command will install required binaries, create docker volume and download latest snapshot of Mainnet chain. It's best to isolate the docker containers in separate network for better security and interoperability.
 
