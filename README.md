@@ -166,3 +166,45 @@ curl --location --request POST 'http://subchain_node:16900/rpc' \
   ]
 }'
 ```
+
+***
+## Update Subchain binaries
+To update Subchain binaries to latest version, follow below steps.
+
+Pull latest docker images
+```shell
+docker pull imaginereplayorg/replay-subchain && \
+docker pull imaginereplayorg/replay-subchain-ethrpc 
+```
+
+Stop and start the conatiner with new images
+```shell
+docker stop subchain_ethrpc
+docker rm subchain_ethrpc
+```
+```shell
+docker run -d \
+--hostname subchain_ethrpc \
+--network mainnet \
+--name subchain_ethrpc \
+-p 12100:12100 \
+-v meta_volume:/root/metachain_playground \
+-v ./<WalletAddress.keystore>:/root/.thetacli/keys/encrypted/<WalletAddress.keystore> \
+imaginereplayorg/replay-subchain-ethrpc
+```
+***
+```shell
+docker stop subchain_node
+docker rm subchain_node
+```
+
+```shell
+docker run -d \
+-e MAIN_CHAIN_NODE_PASSWORD=<YOUR_MAIN_CHAIN_NODE_PASSWORD> \
+--hostname subchain_node \
+--network mainnet \
+--name subchain_node \
+-p 16900:16900 \
+-v meta_volume:/root/metachain_playground \
+imaginereplayorg/replay-subchain
+```
